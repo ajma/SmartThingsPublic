@@ -1,5 +1,5 @@
 /**
- *  Copyright 2015 SmartThings
+ *  Copyright 2016 Andrew Ma
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  *  in compliance with the License. You may obtain a copy of the License at:
@@ -33,47 +33,76 @@ preferences {
     	input "time1", "time", title: "What time?"
         input "temperature1", "number", title: "Color Temperature", range: "2700..5000"
         input "level1", "number", title: "Level (1-100%)", range: "1..100"
+        input "manual1", "capability.momentary", title: "Manually Run when pressed", required: false
 	}
     section("Second Schedule") {
     	input "time2", "time", title: "What time?", required: false
         input "temperature2", "number", title: "Color Temperature", range: "2700..5000", required: false
         input "level2", "number", title: "Level (1-100%)", range: "1..100", required: false
+        input "manual2", "capability.momentary", title: "Manually Run when pressed", required: false
 	}
 }
 
 def installed() {
+	initialize(	)
+}
+
+def updated() {
+	unschedule()
+	initialize()
+}
+
+def initialize() {
+	log.info "Schedule 1 is ${time1}"
+	log.info "Schedule 2 is ${time2}"
+    log.debug "momentary"
 	schedule(time1, schedule1)
-    schedule(time2, schedule2)
     subscribe(ctbulbs, "switch.on", switchOnHandler)
+    subscribe(manual1, "momentary", manual1Handler)
+    subscribe(manual2, "momentary", manual2Handler)
     state.nextLevel = [:]
     state.nextColor = [:]
 }
 
-def updated() {
-	schedule(time1, schedule1)
-    schedule(time2, schedule2)
-    subscribe(ctbulbs, "switch.on", switchOnHandler)
-}
-
 def schedule1() {
 	setLighting(1, temperature1, level1);
+    unschedule()
+    schedule(time2, schedule2)    
 }
 
 def schedule2() {
 	setLighting(2, temperature2, level2);
+    unschedule()
+	schedule(time1, schedule1)
+}
+
+def manual1Handler(evt) {
+	log.debug "test"
+    log.debug evt.value
+	if (evt.value == "pushed") {
+    	log.debug "Manual 1 button pushed"
+		setLighting(1, temperature1, level1);
+	}
+}
+
+def manual2Handler(evt) {
+	if (evt.value == "pushed") {
+    	log.debug "Manual 2 button pushed"
+		setLighting(2, temperature2, level2);
+	}
 }
 
 def setLighting(number, temperature, level) {
-	log.debug("Running schedule $number. Temp: $temperature Level $level")
+	log.info "Running schedule $number. Temp: $temperature Level $level"
 	for(ctbulb in ctbulbs) { 		
         if(ctbulb.currentValue("switch") == "on") {
         	ctbulb.setLevel(level);
             ctbulb.setColorTemperature(temperature)
-            log.info "Setting bulb to level ${level} and temperature ${temperature}"
+            log.info "Setting bulb to level ${level} and temperature ${temperature} for ${ctbulb.name}"
         } else {
         	state.nextLevel.put(ctbulb.id, level)
             state.nextColor.put(ctbulb.id, temperature)
-        	log.info "Bulb is off, queue level: ${level} temperature ${temperature} for next time bulb turns on"
+        	log.info "Bulb is off, queuing level: ${level} temperature ${temperature} for ${ctbulb.name}"
         }
 	}
 }
