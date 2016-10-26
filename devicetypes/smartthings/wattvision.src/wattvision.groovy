@@ -29,11 +29,11 @@ metadata {
 
 	tiles {
 
-		valueTile("power", "device.power") {
+		valueTile("power", "device.power", canChangeIcon: true) {
 			state "power", label: '${currentValue} W'
 		}
 
-		htmlTile(name: "powerContent", attribute: "powerContent", type: "HTML", whitelist: "www.wattvision.com" , url: '${currentValue}', width: 3, height: 2)
+		htmlTile(name: "powerContent", attribute: "powerContent", type: "HTML", whitelist: ["www.wattvision.com"] , url: '${currentValue}', width: 3, height: 2)
 
 		standardTile("refresh", "device.power", inactiveLabel: false, decoration: "flat") {
 			state "default", label: '', action: "refresh.refresh", icon: "st.secondary.refresh"

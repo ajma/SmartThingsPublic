@@ -1,13 +1,14 @@
-/* 
+/*
     Osram Flex RGBW Light Strip
 
     Osram bulbs have a firmware issue causing it to forget its dimming level when turned off (via commands). Handling
     that issue by using state variables
 */
+//DEPRECATED - Using the generic DTH for this device. Users need to be moved before deleting this DTH
 
 metadata {
 	definition (name: "OSRAM LIGHTIFY LED Flexible Strip RGBW", namespace: "smartthings", author: "SmartThings") {
-        
+
         capability "Color Temperature"
         capability "Actuator"
         capability "Switch"
@@ -17,14 +18,14 @@ metadata {
 		capability "Refresh"
 		capability "Sensor"
 		capability "Color Control"
-                        
+
         attribute "colorName", "string"
 
         command "setAdjustedColor"
 
 
-		fingerprint profileId: "0104", inClusters: "0000,0003,0004,0005,0006,0008,0300,0B04,FC0F", outClusters: "0019", manufacturer: "OSRAM", model: "LIGHTIFY Flex RGBW"
-        fingerprint profileId: "0104", inClusters: "0000,0003,0004,0005,0006,0008,0300,0B04,FC0F", outClusters: "0019", manufacturer: "OSRAM", model: "Flex RGBW"
+		//fingerprint profileId: "0104", inClusters: "0000,0003,0004,0005,0006,0008,0300,0B04,FC0F", outClusters: "0019", manufacturer: "OSRAM", model: "LIGHTIFY Flex RGBW"
+        //fingerprint profileId: "0104", inClusters: "0000,0003,0004,0005,0006,0008,0300,0B04,FC0F", outClusters: "0019", manufacturer: "OSRAM", model: "Flex RGBW"
 
     }
 
@@ -48,7 +49,7 @@ metadata {
 		standardTile("refresh", "device.switch", inactiveLabel: false, decoration: "flat") {
 			state "default", label:"", action:"refresh.refresh", icon:"st.secondary.refresh"
 		}
-		
+
         controlTile("colorTempSliderControl", "device.colorTemperature", "slider", height: 1, width: 2, inactiveLabel: false, range:"(2700..6500)") {
 			state "colorTemperature", action:"color temperature.setColorTemperature"
 		}
@@ -117,7 +118,7 @@ def parse(String description) {
                 }
             }
             else if(descMap.attrId == "0000"){  //Hue Attribute
-                def hueValue = Math.round(convertHexToInt(descMap.value) / 255 * 360)
+                def hueValue = Math.round(convertHexToInt(descMap.value) / 255 * 100)
                 log.debug "Hue value returned is $hueValue"
                 sendEvent(name: "hue", value: hueValue, displayed:false)
             }
@@ -273,7 +274,7 @@ private getGenericName(value){
 
 //input Hue Integer values; returns color name for saturation 100%
 private getColorName(hueValue){
-    if(hueValue>360 || hueValue<0)
+    if(hueValue>100 || hueValue<0)
         return
 
     hueValue = Math.round(hueValue / 100 * 360)
@@ -448,7 +449,7 @@ def setColor(value){
         def level = hex(value.level * 255 / 100)
         cmd << zigbeeSetLevel(level)
     }
-    
+
 	if (value.switch == "off") {
 		cmd << "delay 150"
 		cmd << off()

@@ -5,7 +5,7 @@ metadata {
 		capability "Switch"
 		capability "Sensor"
 
-		fingerprint profileId: "0104", inClusters: "0000,0003,0006", outClusters: "0019"
+		fingerprint profileId: "0104", inClusters: "0006, 0004, 0003, 0000, 0005", outClusters: "0019", manufacturer: "Compacta International, Ltd", model: "ZBMPlug15", deviceJoinName: "SmartPower Outlet V1"
 	}
 
 	// simulator metadata
@@ -47,9 +47,21 @@ def parse(String description) {
 
 // Commands to device
 def on() {
-	'zcl on-off on'
+	[
+			'zcl on-off on',
+			'delay 200',
+			"send 0x${zigbee.deviceNetworkId} 0x01 0x${zigbee.endpointId}",
+			'delay 500'
+
+	]
+
 }
 
 def off() {
-	'zcl on-off off'
+	[
+			'zcl on-off off',
+			'delay 200',
+			"send 0x${zigbee.deviceNetworkId} 0x01 0x${zigbee.endpointId}",
+			'delay 500'
+	]
 }
