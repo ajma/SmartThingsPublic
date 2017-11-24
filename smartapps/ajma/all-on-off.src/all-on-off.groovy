@@ -25,22 +25,32 @@ definition(
 )
 
 preferences {
-    section("Control these lights...") {
+    section("Group 1") {
         input "switches", "capability.switch", title: "Which Switches?", multiple:true, required: false
+        input "onButton", "capability.momentary", title: "Button for all on", required: false
+        input "offButton", "capability.momentary", title: "Button for all off", required: false
     }
-    section("Momentary Buttons") {
-        input "onButton", "capability.momentary", title: "Button for all on", required: true
-        input "offButton", "capability.momentary", title: "Button for all off", required: true
+    section("Group 2") {
+        input "switches2", "capability.switch", title: "Which Switches?", multiple:true, required: false
+        input "onButton2", "capability.momentary", title: "Button for all on", required: false
+        input "offButton2", "capability.momentary", title: "Button for all off", required: false
     }
+
 }
 
 def installed() {
     initialize()
 }
 
+def updated() {
+    initialize()
+}
+
 def initialize() {
     subscribe(onButton, "momentary.pushed", onButtonHandler)
     subscribe(offButton, "momentary.pushed", offButtonHandler)
+    subscribe(onButton2, "momentary.pushed", onButtonHandler2)
+    subscribe(offButton2, "momentary.pushed", offButtonHandler2)
 }
 
 def onButtonHandler(evt) {
@@ -55,30 +65,14 @@ def offButtonHandler(evt) {
     }
 }
 
-def setLighting(number, temperature, level) {
-	log.info "Running schedule $number. Temp: $temperature Level $level"
-	for(ctbulb in ctbulbs) { 		
-        if(ctbulb.currentValue("switch") == "on") {
-        	ctbulb.setLevel(level);
-            ctbulb.setColorTemperature(temperature)
-            log.info "Setting bulb to level ${level} and temperature ${temperature} for ${ctbulb.name}"
-        } else {
-        	state.nextLevel.put(ctbulb.id, level)
-            state.nextColor.put(ctbulb.id, temperature)
-        	log.info "Bulb is off, queuing level: ${level} temperature ${temperature} for ${ctbulb.name}"
-        }
-	}
+def onButtonHandler2(evt) {
+    for(swit in switches2) {
+        swit.on()
+    }
 }
 
-def switchOnHandler(evt) {
-	if(state.nextLevel[evt.deviceId]) {
-    	log.info "Applying queued bulb level ${state.nextLevel[evt.deviceId]}"
-        evt.device.setLevel(state.nextLevel[evt.deviceId])
-        state.nextLevel.remove(evt.deviceId)
-    }
-    if(state.nextColor[evt.deviceId]) {
-    	log.info "Applying queued bulb color ${state.nextColor[evt.deviceId]}"
-        evt.device.setColorTemperature(state.nextColor[evt.deviceId])
-        state.nextColor.remove(evt.deviceId)
+def offButtonHandler2(evt) {
+    for(swit in switches2) {
+        swit.off()
     }
 }
